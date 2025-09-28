@@ -1,0 +1,23 @@
+{
+  "name": "backendpai",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Qasem-moh/backendPAi.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Qasem-moh/backendPAi/issues"
+  },
+  "homepage": "https://github.com/Qasem-moh/backendPAi#readme",
+  "dependencies": {
+    "express": "^5.1.0",
+    "nodemon": "^3.1.10"
+  }
+}
