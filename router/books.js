@@ -57,6 +57,65 @@ router.get('/:id', (req, res) => {
  * @access Public
  */
 router.post('/', (req, res) => {
+    const { error } = validateBook(req.body);
+    if(error){
+        return res.status(400).send({message:error.details[0].message});
+    }
+});
+
+/**
+ * @desc Update a book by ID
+ * @method PUT /api/books/:id
+ * @param {number} id - The ID of the book to update
+ * @param {string} [title] - The updated title of the book
+ * @param {string} [author] - The updated author of the book
+ * @param {string} [description] - The updated description of the book
+ * @param {number} [price] - The updated price of the book
+ * @param {string} [cover] - The updated cover image URL of the book
+ * @returns {Object} The updated book
+ * @access Public
+ */
+
+router.put('/:id', (req, res) => {
+    const { error } = validateUpdateBook(req.body);
+    if(error){
+        return res.status(400).send({message:error.details[0].message});
+    }
+
+    const book = books.find(b => b.id === parseInt(req.params.id))
+
+    if (book) {
+        return res.status(200).send({ message: "book has been update" });
+    }else{
+        return res.status(404).send({ message: "book not found" });
+    }
+});
+
+/**
+ * @desc Delete a book by ID
+ * @method DELETE /api/books/:id
+ * @param {number} id - The ID of the book to delete
+ * @returns {Object} A message indicating the result of the deletion
+ * @access Public
+ */
+router.delete('/:id', (req, res) => {
+    
+
+    const book = books.find(b => b.id === parseInt(req.params.id))
+
+    if (book) {
+        return res.status(200).send({ message: "book has been deleted" });
+    }else{
+        return res.status(404).send({ message: "book not found" });
+    }
+});
+
+/**
+ * @desc Validate book object
+ * @param {*} obj 
+ * @returns 
+ */
+function validateBook(obj) {
     const schema = Joi.object({
         title: Joi.string().trim().min(3).max(200).required(),
         author: Joi.string().trim().min(3).max(200).required(),
@@ -65,10 +124,26 @@ router.post('/', (req, res) => {
         cover: Joi.string().trim().required(),
 
     })
-    const{error}=schema.validate(req.body);
-    if(error){
-        return res.status(400).send({message:error.details[0].message});
-    }
-});
+    return schema.validate(obj);
+
+}
+
+/**
+ * 
+ * @param {*} obj 
+ * @returns 
+ */
+function validateUpdateBook(obj) {
+    const schema = Joi.object({
+        title: Joi.string().trim().min(3).max(200),
+        author: Joi.string().trim().min(3).max(200),
+        description: Joi.string().trim().min(3).max(200),
+        price: Joi.number().min(0).max(200),
+        cover: Joi.string().trim(),
+
+    })
+    return schema.validate(obj);
+
+}
 
 module.exports=router;
