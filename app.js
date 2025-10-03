@@ -1,4 +1,5 @@
 const express = require('express');
+const Joi = require('joi');
 const app = express();
 const port = 3000;
 
@@ -31,18 +32,19 @@ app.get('/books/:id', (req, res) => {
     }
 });
 
-app.post('/books', (req, res) => {
-    const { name, author } = req.body;
-    if (!name || !author) {
-        return res.status(400).send({ message: "name and author are required" });
+app.post('/api/books', (req, res) => {
+    const schema = Joi.object({
+        title: Joi.string().trim().min(3).max(200).required(),
+        author: Joi.string().trim().min(3).max(200).required(),
+        description: Joi.string().trim().min(3).max(200).required(),
+        price: Joi.number().min(0).max(200).required(),
+        cover: Joi.string().trim().required(),
+
+    })
+    const{error}=schema.validate(req.body);
+    if(error){
+        return res.status(400).send({message:error.details[0].message});
     }
-    const newBook = {
-        id: books.length + 1,
-        name,
-        author
-    };
-    books.push(newBook);
-    res.status(201).json(newBook);
 });
 
 
