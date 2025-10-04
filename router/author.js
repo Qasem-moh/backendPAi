@@ -1,72 +1,10 @@
-# backendPAi
-
-app.post('/books', (req, res) => {
-    const { name, author } = req.body;
-    if (!name || !author) {
-        return res.status(400).send({ message: "name and author are required" });
-    }
-    const newBook = {
-        id: books.length + 1,
-        name,
-        author
-    };
-    books.push(newBook);
-    res.status(201).json(newBook);
-});
-
-
-const Joi = require('joi');
-
-const schema = Joi.object({
-    username: Joi.string()
-        .alphanum()
-        .min(3)
-        .max(30)
-        .required(),
-
-    password: Joi.string()
-        .pattern(new RegExp('^[a-zA-Z0-9]{3,30}$')),
-
-    repeat_password: Joi.ref('password'),
-
-    access_token: [
-        Joi.string(),
-        Joi.number()
-    ],
-
-    birth_year: Joi.number()
-        .integer()
-        .min(1900)
-        .max(2013),
-
-    email: Joi.string()
-        .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } })
-})
-    .with('username', 'birth_year')
-    .xor('password', 'access_token')
-    .with('password', 'repeat_password');
-
-
-schema.validate({ username: 'abc', birth_year: 1994 });
-// -> { value: { username: 'abc', birth_year: 1994 } }
-
-schema.validate({});
-// -> { value: {}, error: '"username" is required' }
-
-// Also -
-
-try {
-    const value = await schema.validateAsync({ username: 'abc', birth_year: 1994 });
-}
-catch (err) { }
-
-
-
-
-
 const express = require("express");
-const router=express.Router();
+const router = express.Router();
 const joi = require("joi");
+const { Author } = require("../models/Author");
+
+
+// In-memory array to store authors
 const authors = [];
 
 /**
@@ -77,8 +15,15 @@ const authors = [];
  * 
  */
 
-router.get("/", (req, res) => {
-    res.send(authors);
+router.get("/", async (req, res) => {
+    try {
+        const result = await Author.find().sort({ firstName: 1 }).select("firstName lastName");
+        res.status(200).json(result);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: "Internal Server Error" });
+
+    }
 });
 
 /**
@@ -89,14 +34,23 @@ router.get("/", (req, res) => {
  * @access Public
  */
 
-router.get("/:id", (req, res) => {
-    const author = authors.find(a => a.id === parseInt(req.params.id))
+router.get("/:id", async (req, res) => {
+    // const author = authors.find(a => a.id === parseInt(req.params.id))
+    // if (result) {
+    //     res.status(200).json(result);
+    // } else {
+    //     res.status(404).send({ message: "author not found" });
+    // }
 
-    if (author) {
-        res.status(200).json(author);
-    } else {
+    try {
+        const result = await Author.findById(req.params.id)
+        if (result) {
+            res.status(200).json(result);
+        }
+    } catch (error) {
         res.status(404).send({ message: "author not found" });
     }
+
 
 })
 
@@ -105,12 +59,27 @@ router.get("/:id", (req, res) => {
  * @method POST /api/authors
  * @param {string} name - The name of the author
  */
-router.post("/:id",(req,res)=>{
-    const { error } = validateAuthor(req.body);
-    if(error){
-        return res.status(400).send({message:error.details[0].message});
-    }
 
+router.post("/", async (req, res) => {
+    const { error } = validateAuthor(req.body);
+    if (error) {
+        return res.status(400).send({ message: error.details[0].message });
+    }
+    try {
+        const author = new Author({
+            firstName: req.body.firstName,
+            lastName: req.body.lastName,
+            nationality: req.body.nationality,
+            image: req.body.image
+        })
+        const result = await author.save();
+        res.status(201).json(result);
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: "Internal Server Error" });
+
+    }
 })
 
 
@@ -123,21 +92,21 @@ router.post("/:id",(req,res)=>{
  * @access Public   
  * 
  */
-router.put("/:id",(req,res)=>{
+router.put("/:id", (req, res) => {
 
-    const{ error } = validateUpdateAuthor(req.body);
-    if(error){
-        return res.status(400).send({message:error.details[0].message});
+    const { error } = validateUpdateAuthor(req.body);
+    if (error) {
+        return res.status(400).send({ message: error.details[0].message });
     }
     const author = authors.find(a => a.id === parseInt(req.params.id))
 
     if (author) {
         return res.status(200).send({ message: "author has been updated" });
-    }else{
+    } else {
         return res.status(404).send({ message: "author not found" });
     }
 
-    
+
 })
 
 /**
@@ -148,12 +117,12 @@ router.put("/:id",(req,res)=>{
  * @access Public   
  */
 
-router.delete("/:id",(req,res)=>{
+router.delete("/:id", (req, res) => {
     const authorIndex = authors.find(a => a.id === parseInt(req.params.id))
 
     if (authorIndex) {
         res.status(200).send({ message: "author has been deleted" });
-    }else{
+    } else {
         res.status(404).send({ message: "author not found" });
     }
 })
@@ -170,7 +139,7 @@ function validateAuthor(author) {
         firstName: joi.string().min(3).required(),
         lastName: joi.string().min(3).required(),
         nationality: joi.string().min(3).required(),
-        birthdate: joi.number().required()
+        image: joi.string
     })
     return schema.validate(author);
 }
@@ -189,7 +158,7 @@ function validateUpdateAuthor(author) {
         firstName: joi.string().min(3),
         lastName: joi.string().min(3),
         nationality: joi.string().min(3),
-        birthdate: joi.number()
+        iamge: joi.string()
     })
     return schema.validate(author);
 }
