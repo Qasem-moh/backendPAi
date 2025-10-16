@@ -17,7 +17,8 @@ const authors = [];
 
 router.get("/", async (req, res) => {
     try {
-        const result = await Author.find().sort({ firstName: 1 }).select("firstName lastName");
+        const result = await Author.find()
+        // .sort({ firstName: 1 }).select("firstName lastName");
         res.status(200).json(result);
     } catch (error) {
         console.log(error);
