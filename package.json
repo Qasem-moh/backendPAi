@@ -17,6 +17,8 @@
   },
   "homepage": "https://github.com/Qasem-moh/backendPAi#readme",
   "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "express-async-handler": "^1.2.0",
     "joi": "^18.0.1",
