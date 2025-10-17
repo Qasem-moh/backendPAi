@@ -1,11 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const joi = require("joi");
-const { Author } = require("../models/Author");
-
-
-// In-memory array to store authors
-const authors = [];
+const { Author,validateAuthor,validateUpdateAuthor } = require("../models/Author");
 
 /**
  * @desc Get all authors
@@ -36,14 +31,7 @@ router.get("/", async (req, res) => {
  */
 
 router.get("/:id", async (req, res) => {
-    // const author = authors.find(a => a.id === parseInt(req.params.id))
-    // if (result) {
-    //     res.status(200).json(result);
-    // } else {
-    //     res.status(404).send({ message: "author not found" });
-    // }
-
-    try {
+      try {
         const result = await Author.findById(req.params.id)
         if (result) {
             res.status(200).json(result);
@@ -93,21 +81,28 @@ router.post("/", async (req, res) => {
  * @access Public   
  * 
  */
-router.put("/:id", (req, res) => {
+router.put("/:id", async (req, res) => {
 
     const { error } = validateUpdateAuthor(req.body);
     if (error) {
         return res.status(400).send({ message: error.details[0].message });
     }
-    const author = authors.find(a => a.id === parseInt(req.params.id))
 
-    if (author) {
-        return res.status(200).send({ message: "author has been updated" });
-    } else {
-        return res.status(404).send({ message: "author not found" });
+    try {
+        const author = await Author.findByIdAndUpdate(req.params.id, {
+            $set: {
+                firstName: req.body.firstName,
+                lastName: req.body.lastName,
+                nationality: req.body.nationality,
+                image: req.body.image
+            }
+        },
+        { new: true })
+        res.status(200).json(author);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: "Internal Server Error" });
     }
-
-
 })
 
 /**
@@ -118,33 +113,22 @@ router.put("/:id", (req, res) => {
  * @access Public   
  */
 
-router.delete("/:id", (req, res) => {
-    const authorIndex = authors.find(a => a.id === parseInt(req.params.id))
+router.delete("/:id", async (req, res) => {
+    // const authorIndex = authors.find(a => a.id === parseInt(req.params.id))
 
-    if (authorIndex) {
+
+try {
+    const author = await Author.findByIdAndDelete(req.params.id);
+    if (author) {
         res.status(200).send({ message: "author has been deleted" });
     } else {
         res.status(404).send({ message: "author not found" });
     }
+} catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal Server Error" });
+}
 })
-/**
- * 
- * @param {*} author 
- * @returns 
- */
-
-
-function validateAuthor(author) {
-
-    const schema = joi.object({
-        firstName: joi.string().min(3).required(),
-        lastName: joi.string().min(3).required(),
-        nationality: joi.string().min(3).required(),
-        image: joi.string
-    })
-    return schema.validate(author);
-}
-
 
 /**
  * 
@@ -152,17 +136,6 @@ function validateAuthor(author) {
  * @returns 
  */
 
-
-function validateUpdateAuthor(author) {
-
-    const schema = joi.object({
-        firstName: joi.string().min(3),
-        lastName: joi.string().min(3),
-        nationality: joi.string().min(3),
-        iamge: joi.string()
-    })
-    return schema.validate(author);
-}
 
 
 
