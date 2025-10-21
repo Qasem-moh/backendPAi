@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const asyncHandler = require("express-async-handler");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const { User,
     validateLoginUser,
     validateRegisterUser,
@@ -70,7 +71,7 @@ router.post('/login', asyncHandler(async (req, res) => {
     }
 
    
-    const token = null;
+    const token = jwt.sign({id:user._id, isAdmin:user.isAdmin},process.env.JWT_SECRET);;
     const { password, ...other } = user._doc
     res.status(200).json({ message: 'User logged in successfully', ...other, token });
 }))

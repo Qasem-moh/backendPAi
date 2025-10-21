@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const booksPath = require('./router/books');
 const authorPath = require('./router/author');
+const usersPath = require('./router/users');
 const authPath=require('./router/auth');
 const mongoose = require('mongoose');
 const logger = require('./middleware/logger');
@@ -23,6 +24,8 @@ app.use(logger);
 app.use('/api/books', booksPath);
 app.use('/api/author', authorPath);
 app.use('/api/auth',authPath);
+app.use('/api/users', usersPath);
+
 
 //error handling middleware
 app.use(notFound)
