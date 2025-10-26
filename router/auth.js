@@ -33,7 +33,6 @@ router.post('/register', asyncHandler(async (req, res) => {
         username: req.body.username,
         email: req.body.email,
         password: hashedPassword,
-        isAdmin: req.body.isAdmin
     });
     const result = await user.save();
     const token = null;

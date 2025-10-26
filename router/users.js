@@ -3,8 +3,9 @@ const router = express.Router();
 const asyncHandler = require('express-async-handler');
 const bcrypt = require('bcryptjs');
 const { User, validateUpdateUser } = require('../models/User');
-const {verifyToken} = require('../middleware/verfiyToken')
-/**error
+const {verifyToken,verifyTokenAndAuthorization, verifyTokenAndAdmin} = require('../middleware/verfiyToken')
+
+/**
  * @desc update a new user
  * @route /api/users/:id
  * @method PUT
@@ -12,10 +13,8 @@ const {verifyToken} = require('../middleware/verfiyToken')
  * 
  */
 
-router.put('/:id', verifyToken, asyncHandler(async (req, res) => {
-    if (req.user.id !== req.params.id) {
-        return res.status(403).json({ message: "you can update only your account" });
-    }
+router.put('/:id', verifyTokenAndAuthorization, asyncHandler(async (req, res) => {
+  
     const { error } = validateUpdateUser(req.body);
     if (error) {
         return res.status(400).json({ message: error.details[0].message });
@@ -34,6 +33,20 @@ router.put('/:id', verifyToken, asyncHandler(async (req, res) => {
         }
     }, { new: true }).select('-password');
     res.status(200).json(updateUser);
+}));
+
+/**
+ * @desc get all users
+ * @route /api/users
+ * @method GET
+ * @access Private (Admin only)
+ * 
+ */
+
+router.get('/', verifyTokenAndAdmin, asyncHandler(async (req, res) => {
+    const users = await User.find().select('-password');
+
+    res.status(200).json(users);
 }));
 
 
