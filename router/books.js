@@ -2,7 +2,7 @@ const express = require("express")
 const router = express.Router();
 const asyncHandler = require("express-async-handler");
 const { Book, validateBook, validateUpdateBook } = require('../models/Book');
-
+const { verifyTokenAndAdmin}=require("../middleware/verfiyToken")
 
 /**
  * @desc Get all books
@@ -45,9 +45,9 @@ router.get('/:id', asyncHandler(
  * @param {number} price - The price of the book
  * @param {string} cover - The cover image URL of the book
  * @returns {Object} The created book
- * @access Public
+ * @access private only admin
  */
-router.post('/', asyncHandler(async (req, res) => {
+router.post('/', verifyTokenAndAdmin, asyncHandler(async (req, res) => {
     const { error } = validateBook(req.body);
     if (error) {
         return res.status(400).send({ message: error.details[0].message });
@@ -74,10 +74,10 @@ router.post('/', asyncHandler(async (req, res) => {
  * @param {number} [price] - The updated price of the book
  * @param {string} [cover] - The updated cover image URL of the book
  * @returns {Object} The updated book
- * @access Public
+ * @access private only admin
  */
 
-router.put('/:id', asyncHandler(async (req, res) => {
+router.put('/:id', verifyTokenAndAdmin, asyncHandler(async (req, res) => {
     const { error } = validateUpdateBook(req.body);
     if (error) {
         return res.status(400).send({ message: error.details[0].message });
@@ -101,9 +101,9 @@ router.put('/:id', asyncHandler(async (req, res) => {
  * @method DELETE /api/books/:id
  * @param {number} id - The ID of the book to delete
  * @returns {Object} A message indicating the result of the deletion
- * @access Public
+ * @access Private only admin
  */
-router.delete('/:id', asyncHandler(async (req, res) => {
+router.delete('/:id', verifyTokenAndAdmin, asyncHandler(async (req, res) => {
     const book = await Book.findByIdAndDelete(req.params.id);
     if (book) {
         res.status(200).send({ message: "book deleted" });

@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const asyncHandler = require("express-async-handler");
 const { Author, validateAuthor, validateUpdateAuthor } = require("../models/Author");
-
+const {verifyTokenAndAdmin }=require("../middleware/verfiyToken")
 /**
  * @desc Get all authors
  * @method GET /api/authors
@@ -41,9 +41,10 @@ router.get("/:id", asyncHandler(
  * @desc Create a new author
  * @method POST /api/authors
  * @param {string} name - The name of the author
+ * access private only admin
  */
 
-router.post("/", asyncHandler(
+router.post("/", verifyTokenAndAdmin, asyncHandler(
     async (req, res) => {
         const { error } = validateAuthor(req.body);
         if (error) {
@@ -68,10 +69,10 @@ router.post("/", asyncHandler(
  * @param {number} id - The ID of the author to update
  * @param {string} [name] - The updated name of the author
  * @returns {Object} The updated author
- * @access Public   
+ * @access private only admin
  * 
  */
-router.put("/:id", asyncHandler(
+router.put("/:id", verifyTokenAndAdmin, asyncHandler(
     async (req, res) => {
 
         const { error } = validateUpdateAuthor(req.body);
@@ -96,10 +97,10 @@ router.put("/:id", asyncHandler(
  * @method DELETE /api/authors/:id
  * @param {number} id - The ID of the author to delete
  * @returns {Object} A message indicating the deletion status
- * @access Public   
+ * @access Private only admin
  */
 
-router.delete("/:id", asyncHandler(
+router.delete("/:id",verifyTokenAndAdmin, asyncHandler(
     async (req, res) => {
         const author = await Author.findByIdAndDelete(req.params.id);
         if (author) {

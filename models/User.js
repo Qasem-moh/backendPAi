@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Joi = require('joi');
+const jwt = require("jsonwebtoken");
 
 const userSchema = new mongoose.Schema({
     
@@ -31,6 +32,11 @@ const userSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
+//Geberate token
+userSchema.methods.generateToken = function () { 
+    return jwt.sign({ id: this._id, isAdmin: this.isAdmin }, process.env.JWT_SECRET);;
+}
+//user model
 const User = mongoose.model('User', userSchema);
 
 // Validation function for registering a new user
